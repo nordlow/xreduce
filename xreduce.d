@@ -49,9 +49,9 @@ struct Task {
 
 		const ddmPath = findExecutable(FileName("ddemangled"));
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
-		const cmdToReduce = [exeOutputs] ~ [matchingOutput] ~ ["dub"];
-		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[1 .. $] ~ cmdToReduce;
-		dbg(argsPP.join(" "));
+		const tester = ([exeOutputs] ~ [matchingOutput] ~ ["dub"]).join(" ");
+		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[1 .. $] ~ tester;
+		dbg("Calling command: ", argsPP.join(" "));
 
 		this.pp = pipeProcess(argsPP, redirect, env);
 	}
