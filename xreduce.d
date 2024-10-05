@@ -49,9 +49,10 @@ struct Task {
 
 		const ddmPath = findExecutable(FileName("ddemangled"));
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
-		const tester = ([exeOutputs] ~ [matchingOutput] ~ ["dub"]).join(" ");
-		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[1 .. $] ~ tester;
-		// dbg("Calling command: ", argsPP.join(" "));
+		const tester = ([exeOutputs] ~ cmd[1 .. $]).join(" ");
+		dbg("Tester: ", tester);
+		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ [matchingOutput] ~ tester;
+		dbg("Calling command: ", argsPP.join(" "));
 
 		this.pp = pipeProcess(argsPP, redirect, env);
 	}
@@ -66,7 +67,7 @@ int main(scope Cmd cmd_) {
 	// analyze CLI arguments
 	CmdSwitches switches;
 	string matchingOutput;
-	Cmd cmd = ["dustmite"]; // filtered command
+	Cmd cmd = []; // filtered command
 	foreach (string arg; cmd_[1 .. $]) {
 		if (arg.skipOver("--output=")) {
 			matchingOutput = arg;
