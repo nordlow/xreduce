@@ -83,7 +83,6 @@ int main(scope Cmd cmd_) {
 	const onRdr = numOn >= 2;
 	const redirect = Redirect.all;
 
-	if (dbgFlag && onRdc) dbg("xreduce: Checking on: using ", exeRdc);
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
 
 	auto rdc = onRdc ? Task(TaskType.rdc, exeRdc, cmd, switches, cwd, redirect, matchingOutput: matchingOutput) : Task.init;
