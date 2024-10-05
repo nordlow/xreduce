@@ -40,7 +40,6 @@ struct Task {
 		CmdArgs cmdArgs = cmd[1 .. $];
 		const ddmPath = findExecutable(FileName("ddemangled"));
 
-		// debug writeln("In ", cwd, ": ", tt, ": ", (exe.str ~ cmdArgs).join(' '));
 		this.tt = tt;
 		this.exe = exe;
 		final switch (tt) {
@@ -54,16 +53,7 @@ struct Task {
 		debug writeln("args:", ppArgs.join(' '));
 		this.redirect = redirect;
 
-		// modify environment
 		Environment env;
-		const libmimallocPath = Path("~/.local/mimalloc-snapshot/lib/libmimalloc.so");
-		const libmimallocAbsPath = Path(libmimallocPath.str.expandTilde);
-		if (libmimallocAbsPath.str.exists) {
-			// with LDC this reduces check time by 12.5%
-			if (dbgFlag) dbg("xreduce: Overriding default C allocator with ", libmimallocPath);
-			env["LD_PRELOAD"] = libmimallocAbsPath.str;
-		}
-
 		this.pp = pipeProcess(ppArgs, redirect, env);
 	}
 	TaskType tt;
@@ -114,18 +104,12 @@ int main(scope Cmd cmd) {
 	const cwd = DirPath(getcwd);
 
 	// Scan for presence of compiler/tools/linter executables
-	const exeLDC2 = FileName(findExecutable(FileName(`ldc2`)) ? `ldc2` : []);
-	const exeLDMD2 = FileName(findExecutable(FileName(`ldmd2`)) ? `ldmd2` : []);
-	const exeDMD = FileName(findExecutable(FileName(`dmd`)) ? `dmd` : []);
-	const exeDscanner = FileName(findExecutable(FileName(`dscanner`)) ? `dscanner` : []);
+	const exeRdc = FileName(findExecutable(FileName(`dustmite`)) ? `dustmite` : []);
 
 	const onRdc = (op == Op.rdc || op == Op.all);
 	const numOn = onRdc;
 	const onRdr = numOn >= 2;
 	const redirect = onRdr ? Redirect.all : Redirect.init;
-
-	const exeRdc = either(exeLDMD2, exeDMD); // `ldmd2` fastest at check
-	const exeRun = either(exeDMD, exeLDMD2); // `dmd` fastest at compiling/building
 
 	if (dbgFlag && onRdc) dbg("xreduce: Checking on: using ", exeRdc);
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
