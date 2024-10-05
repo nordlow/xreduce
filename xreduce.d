@@ -27,7 +27,7 @@ static immutable dExt = `.d`;
 static immutable dbgFlag = false; // Flags for debug logging via `dbg`.
 
 import std.process : ProcessPipes, Redirect, pipeProcess, wait;
-import std.algorithm : count, filter, endsWith, startsWith, canFind, findSplitAfter, skipOver, findSplit, either;
+import std.algorithm : count, filter, endsWith, startsWith, skipOver, canFind, findSplitAfter, skipOver, findSplit, either;
 import std.array : array, join, replace;
 import std.path : expandTilde, baseName, stripExtension, buildPath;
 import std.file : exists, getcwd, dirEntries, SpanMode, getSize, remove, readText, tempDir, mkdirRecurse;
@@ -36,7 +36,7 @@ import std.exception : enforce;
 import std.uuid : randomUUID;
 
 struct Task {
-	this(TaskType tt, FileName exe, Cmd cmd, CmdSwitches switches, string[] srcPaths, DirPath cwd, Redirect redirect) {
+	this(TaskType tt, FileName exe, Cmd cmd, CmdSwitches switches, DirPath cwd, Redirect redirect) {
 		CmdArgs cmdArgs = cmd[1 .. $];
 		const ddmPath = findExecutable(FileName("ddemangled"));
 
@@ -67,45 +67,22 @@ struct Task {
 	Redirect redirect;
 }
 
-int main(scope Cmd cmd) {
-	const argsOk = cmd.count("xreduce.d") <= 1 && cmd.count("-run") <= 1 && cmd.count("-main") <= 1;
-
-	enforce(argsOk, "Potential self-recursion, where args: " ~ cmd.join(' '));
-
+int main(scope Cmd cmd_) {
 	// analyze CLI arguments
-	bool selfFlag = false;
-	string[] srcPaths; // source file paths
-	string[] iDirs; // import path dirs
 	CmdSwitches switches;
-	foreach (const ref c; cmd[1 .. $]) {
-		if (c.baseName == __FILE__.baseName)
-			selfFlag = true;
-		if (c.startsWith('-')) {
-			if (const split = c.findSplitAfter("-I")) {
-				iDirs ~= split[1].expandTilde;
-			} else {
-				switches ~= c;
-			}
+	string matchingOutput;
+	Cmd cmd = ["dustmite"]; // filtered command
+	foreach (string arg; cmd_[1 .. $]) {
+		if (arg.skipOver("--output=")) {
+			matchingOutput = arg;
 		} else {
-			srcPaths ~= c;
+			cmd ~= arg;
 		}
 	}
-	// if (dbgFlag) dbg("iDirs: ", iDirs);
-	// if (dbgFlag) dbg("switches: ", switches);
-	// if (dbgFlag) dbg("srcPath: ", srcPaths);
 
-	if (selfFlag) {
-		// if (dbgFlag) dbg("xreduce: Skipping analysis of itself for now until self-recursion has been fixed");
-		return 0;
-	}
-
-	// Flags:
 	const op = Op.rdc;
 	const cwd = DirPath(getcwd);
-
-	// Scan for presence of compiler/tools/linter executables
 	const exeRdc = FileName(findExecutable(FileName(`dustmite`)) ? `dustmite` : []);
-
 	const onRdc = (op == Op.rdc || op == Op.all);
 	const numOn = onRdc;
 	const onRdr = numOn >= 2;
@@ -114,7 +91,7 @@ int main(scope Cmd cmd) {
 	if (dbgFlag && onRdc) dbg("xreduce: Checking on: using ", exeRdc);
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
 
-	auto rdc = onRdc ? Task(TaskType.rdc, exeRdc, cmd, switches, srcPaths, cwd, redirect) : Task.init;
+	auto rdc = onRdc ? Task(TaskType.rdc, exeRdc, cmd, switches, cwd, redirect) : Task.init;
 
 	const bool rdcExitEarlyUponFailure = false; // TODO: Doesn't seem to be needed at the moment.
 	int rdcES;
