@@ -44,13 +44,13 @@ struct Task {
 		}
 
 		this.cwd = cwd;
-		this.redirect = redirect;
 
 		Environment env;
 
 		const ddmPath = findExecutable(FileName("ddemangled"));
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
-		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--redirect"] ~ cmd[1 .. $] ~ [exeOutputs] ~ [matchingOutput] ~ ["dub"];
+		const cmdToReduce = [exeOutputs] ~ [matchingOutput] ~ ["dub"];
+		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[1 .. $] ~ cmdToReduce;
 		dbg(argsPP.join(" "));
 
 		this.pp = pipeProcess(argsPP, redirect, env);
@@ -60,7 +60,6 @@ struct Task {
 	ProcessPipes pp;
 	char[] outLines;
 	char[] errLines;
-	Redirect redirect;
 }
 
 int main(scope Cmd cmd_) {
@@ -82,7 +81,7 @@ int main(scope Cmd cmd_) {
 	const onRdc = (op == Op.rdc || op == Op.all);
 	const numOn = onRdc;
 	const onRdr = numOn >= 2;
-	const redirect = onRdr ? Redirect.all : Redirect.init;
+	const redirect = Redirect.all;
 
 	if (dbgFlag && onRdc) dbg("xreduce: Checking on: using ", exeRdc);
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
@@ -95,7 +94,6 @@ int main(scope Cmd cmd_) {
 		rdcES = rdc.pp.pid.wait();
 		if (dbgFlag) dbg("xreduce: Reduce exit status: ", rdcES);
 		if (rdcES != 0) {
-			if (dbgFlag) dbg("xreduce: Check is redirected");
 			rdc.outLines = rdc.pp.stdout.byLine.join('\n');
 			rdc.errLines = rdc.pp.stderr.byLine.join('\n');
 			if (rdc.outLines.length)
