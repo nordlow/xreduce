@@ -29,14 +29,14 @@ static immutable dbgFlag = false; // Flags for debug logging via `dbg`.
 import std.process : ProcessPipes, Redirect, pipeProcess, wait;
 import std.algorithm : count, filter, endsWith, startsWith, skipOver, canFind, findSplitAfter, skipOver, findSplit, either;
 import std.array : array, join, replace;
-import std.path : expandTilde, baseName, stripExtension, buildPath;
+import std.path : expandTilde, baseName, stripExtension, dirName, buildPath;
 import std.file : exists, getcwd, dirEntries, SpanMode, getSize, remove, readText, tempDir, mkdirRecurse;
 import std.stdio : stdout, stderr, File, writeln;
 import std.exception : enforce;
 import std.uuid : randomUUID;
 
 struct Task {
-	this(TaskType tt, FileName exe, Cmd cmd, CmdSwitches switches, DirPath cwd, Redirect redirect) {
+	this(TaskType tt, FileName exe, Cmd cmd, CmdSwitches switches, DirPath cwd, Redirect redirect, string matchingOutput) {
 		final switch (tt) {
 		case TaskType.rdc:
 			this.use = true;
@@ -49,8 +49,10 @@ struct Task {
 		Environment env;
 
 		const ddmPath = findExecutable(FileName("ddemangled"));
-		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ cmd[1 .. $];
-		writeln("args: ", argsPP);
+		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
+		dbg(exeOutputs);
+		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exeOutputs] ~ [exe.str] ~ cmd[1 .. $];
+		dbg(argsPP);
 
 		this.pp = pipeProcess(argsPP, redirect, env);
 	}
@@ -86,7 +88,7 @@ int main(scope Cmd cmd_) {
 	if (dbgFlag && onRdc) dbg("xreduce: Checking on: using ", exeRdc);
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
 
-	auto rdc = onRdc ? Task(TaskType.rdc, exeRdc, cmd, switches, cwd, redirect) : Task.init;
+	auto rdc = onRdc ? Task(TaskType.rdc, exeRdc, cmd, switches, cwd, redirect, matchingOutput: matchingOutput) : Task.init;
 
 	const bool rdcExitEarlyUponFailure = false; // TODO: Doesn't seem to be needed at the moment.
 	int rdcES;
