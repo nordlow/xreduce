@@ -37,7 +37,8 @@ import std.uuid : randomUUID;
 
 struct Task {
 	this(TaskType tt, FileName exe, Cmd cmd, CmdSwitches switches, DirPath cwd, Redirect redirect) {
-		CmdArgs cmdArgs = cmd[1 .. $];
+		argsCmd = cmd[1 .. $];
+		writeln("argsCmd: ", argsCmd);
 		const ddmPath = findExecutable(FileName("ddemangled"));
 
 		this.tt = tt;
@@ -49,16 +50,16 @@ struct Task {
 		}
 
 		this.cwd = cwd;
-		auto ppArgs = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ this.cmdArgs;
-		debug writeln("args:", ppArgs.join(' '));
+		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ this.argsCmd;
+		writeln("args: ", argsPP);
 		this.redirect = redirect;
 
 		Environment env;
-		this.pp = pipeProcess(ppArgs, redirect, env);
+		this.pp = pipeProcess(argsPP, redirect, env);
 	}
 	TaskType tt;
 	FileName exe;
-	CmdArgs cmdArgs;
+	CmdArgs argsCmd;
 	bool use;
 	DirPath cwd;
 	ProcessPipes pp;
