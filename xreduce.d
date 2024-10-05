@@ -24,7 +24,7 @@ alias CmdSwitches = const(string)[];
 alias Environment = string[string];
 
 static immutable dExt = `.d`;
-static immutable dbgFlag = true; // Flags for debug logging via `dbg`.
+static immutable dbgFlag = false; // Flags for debug logging via `dbg`.
 
 import std.process : ProcessPipes, Redirect, pipeProcess, wait;
 import std.algorithm : count, filter, endsWith, startsWith, skipOver, canFind, findSplitAfter, skipOver, findSplit, either;
