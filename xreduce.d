@@ -50,7 +50,6 @@ struct Task {
 
 		const ddmPath = findExecutable(FileName("ddemangled"));
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
-		dbg(exeOutputs);
 		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exeOutputs] ~ [exe.str] ~ cmd[1 .. $];
 		dbg(argsPP);
 
