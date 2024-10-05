@@ -47,13 +47,12 @@ struct Task {
 
 		Environment env;
 
-		dbg(cmd);
 		const ddmPath = findExecutable(FileName("ddemangled"));
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
 		const tester = ([exeOutputs] ~ [matchingOutput] ~ cmd[1 .. $]).join(" ");
-		dbg("Tester: ", tester);
+		// dbg("Tester: ", tester);
 		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[0 .. 1] ~ tester;
-		dbg("Calling command: ", argsPP.join(" "));
+		// dbg("Calling command: ", argsPP.join(" "));
 
 		this.pp = pipeProcess(argsPP, redirect, env);
 	}
