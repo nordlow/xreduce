@@ -51,7 +51,7 @@ struct Task {
 		const exeOutputs = __FILE_FULL_PATH__.dirName.buildPath("outputs.sh");
 		const tester = ([exeOutputs] ~ [matchingOutput] ~ ["dub"]).join(" ");
 		const argsPP = (ddmPath ? [ddmPath.str] : []) ~ [exe.str] ~ ["--no-redirect"] ~ cmd[1 .. $] ~ tester;
-		dbg("Calling command: ", argsPP.join(" "));
+		// dbg("Calling command: ", argsPP.join(" "));
 
 		this.pp = pipeProcess(argsPP, redirect, env);
 	}
