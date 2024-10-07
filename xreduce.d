@@ -82,7 +82,7 @@ int main(scope Cmd cmd_) {
 	const onRdc = (op == Op.rdc || op == Op.all);
 	const numOn = onRdc;
 	const onRdr = numOn >= 2;
-	const redirect = Redirect.all;
+	const redirect = Redirect.init;
 
 	if (dbgFlag && onRdr) dbg("xreduce: Redirecting on");
 
